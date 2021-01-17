@@ -1,28 +1,24 @@
 import java.util.Collection;
 
-import javafx.scene.canvas.GraphicsContext;
-
 public class GameLoop implements Runnable {
 
-    GraphicsContext gc;
     Board boardOne;
     Board boardTwo;
     Player playerOne;
     Player playerTwo;;
 
-    public GameLoop(GraphicsContext gc) {
-        this.gc = gc;
+    public GameLoop() {
         this.boardOne = new Board();
         this.boardTwo = new Board();
-        Painter.paint(boardOne.display(), boardTwo.displayToOpponent(), gc);
-        this.playerOne = new HumanPlayer(boardOne, boardTwo, gc);
-        this.playerTwo = new ComputerPlayer(boardTwo, boardOne, gc);
+        Painter.repaintBoards(boardOne.display(), boardTwo.displayToOpponent());
+        this.playerOne = new HumanPlayer(boardOne, boardTwo);
+        this.playerTwo = new ComputerPlayer(boardTwo, boardOne);
 
-        Global.topHovered.subscribe((Collection<TileLocation> hovered) -> {
-            Painter.paintHoveredTop(hovered, gc);
+        Global.topHoveredStream.subscribe((Collection<TileLocation> hovered) -> {
+            Painter.paintHoveredTop(hovered);
         }, 98);
-        Global.bottomHovered.subscribe((Collection<TileLocation> hovered) -> {
-            Painter.paintHoveredBottom(hovered, gc);
+        Global.bottomHoveredStream.subscribe((Collection<TileLocation> hovered) -> {
+            Painter.paintHoveredBottom(hovered);
         }, 99);
     }
 
@@ -30,12 +26,12 @@ public class GameLoop implements Runnable {
     public void run() {
         playerOne.placeShips();
         playerTwo.placeShips();
+
         while (true) {
             playerOne.playRound();
-            if (!playerTwo.hasShips())
-                break;
+
             playerTwo.playRound();
-            if (!playerOne.hasShips())
+            if (!playerTwo.hasShips() || !playerOne.hasShips())
                 break;
         }
     }

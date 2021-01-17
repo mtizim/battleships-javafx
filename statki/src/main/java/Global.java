@@ -2,10 +2,15 @@ import java.util.Collection;
 
 // Easier than dependency injection, it's a small finite project anyway
 public class Global {
-    public static Listenable<TileLocation> bottomTileStream = new Listenable<>();
-    public static Listenable<TileLocation> topTileStream = new Listenable<>();
-    public static Listenable<Collection<TileLocation>> topHovered = new Listenable<>();
-    public static Listenable<Collection<TileLocation>> bottomHovered = new Listenable<>();
+    public static Listenable<TileLocation> bottomClickedStream = new Listenable<>();
+    public static Listenable<TileLocation> topClickedStream = new Listenable<>();
+    public static Listenable<Collection<TileLocation>> topHoveredStream = new Listenable<>();
+    public static Listenable<Collection<TileLocation>> bottomHoveredStream = new Listenable<>();
+    public static Listenable<MWHEEL> mwheelStream = new Listenable<>(true);
+}
+
+enum MWHEEL {
+    UP, DOWN
 }
 
 class TileLocation {
@@ -16,4 +21,13 @@ class TileLocation {
 
     int x;
     int y;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TileLocation)) {
+            return false;
+        }
+        TileLocation o = (TileLocation) obj;
+        return (this.x == o.x && this.y == o.y);
+    }
 }

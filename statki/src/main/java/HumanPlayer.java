@@ -3,23 +3,24 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import javafx.scene.canvas.GraphicsContext;
-
 public class HumanPlayer extends Player {
 
-    HumanPlayer(Board playerBoard, Board opponentBoard, GraphicsContext gc) {
-        super(playerBoard, opponentBoard, gc);
+    HumanPlayer(Board playerBoard, Board opponentBoard) {
+        super(playerBoard, opponentBoard);
     }
 
     @Override
     void attack() {
 
         CompletableFuture<Void> f = new CompletableFuture<>();
-        Global.topTileStream.subscribe((TileLocation location) -> {
+        Global.topClickedStream.subscribe((TileLocation location) -> {
+            if (this.opponentBoard.selfBoard[location.x][location.y] == BoardItem.MISS) {
+                return;
+            }
             this.opponentBoard.attack(location.x, location.y);
 
-            Global.topTileStream.unsubscribe(10);
-            Painter.paintAI(opponentBoard.displayToOpponent(), gc);
+            Global.topClickedStream.unsubscribe(10);
+            Painter.repaintTop(opponentBoard.displayToOpponent());
             f.complete(null);
         }, 10);
         try {
@@ -31,13 +32,28 @@ public class HumanPlayer extends Player {
 
     @Override
     void placeShips() {
-        // weird hack but better than copy paster
-        for (int[] size = { 1 }; size[0] <= 5; size[0] = size[0] + 1) {
-            Global.topHovered.setTransform((Collection<TileLocation> singleHovered) -> {
+        Global.topHoveredStream.pauseSubscription(98);
+        // weird concurrency hacks but it's just ints and enums anyway
+        // proper thread communication would be harder and bring no benefits
+        Orientation[] currentOrientation = { Orientation.DOWN };
+
+        Global.mwheelStream.subscribe((MWHEEL wheel) -> {
+            if (wheel == MWHEEL.UP) {
+                currentOrientation[0] = Orientation.values()[(currentOrientation[0].ordinal() + 1) % 4];
+            }
+            if (wheel == MWHEEL.DOWN) {
+                int newi = (currentOrientation[0].ordinal() - 1) % 4;
+                newi = newi == -1 ? 3 : newi;
+                currentOrientation[0] = Orientation.values()[newi];
+            }
+            Global.bottomHoveredStream.reapply();
+        }, 60);
+        int[][] ships = { { 5 }, { 4 }, { 3 }, { 3 }, { 2 } };
+        for (int[] size : ships) {
+            Global.bottomHoveredStream.setTransform((Collection<TileLocation> singleHovered) -> {
                 TileLocation s = singleHovered.iterator().next();
                 Collection<TileLocation> r = new ArrayList<>();
-                Orientation o = Orientation.DOWN;
-                switch (o) {
+                switch (currentOrientation[0]) {
                     case DOWN:
                         for (int y = 0; y < size[0]; y++) {
                             r.add(new TileLocation(s.x, s.y - y));
@@ -59,16 +75,16 @@ public class HumanPlayer extends Player {
                         }
                         break;
                 }
-                System.out.println(r);
                 return r;
             });
             CompletableFuture<Void> f = new CompletableFuture<>();
-            Global.bottomTileStream.subscribe((TileLocation location) -> {
-                boolean placed = this.playerBoard.place(new Ship(size[0], Orientation.DOWN, location.x, location.y));
+            Global.bottomClickedStream.subscribe((TileLocation location) -> {
+                boolean placed = this.playerBoard
+                        .place(new Ship(size[0], currentOrientation[0], location.x, location.y));
                 if (!placed) {
                     return;
                 }
-                Painter.paintHuman(playerBoard.display(), gc);
+                Painter.repaintBottom(playerBoard.display());
                 f.complete(null);
             }, 11);
             try {
@@ -77,8 +93,10 @@ public class HumanPlayer extends Player {
                 e.printStackTrace();
             }
         }
-
-        Global.bottomHovered.setTransform((Collection<TileLocation> singleHovered) -> singleHovered);
+        Global.topHoveredStream.resumeSubscription(98);
+        Global.mwheelStream.unsubscribe(60);
+        Global.bottomHoveredStream.unsubscribe(99);
+        Global.bottomHoveredStream.setTransform((Collection<TileLocation> singleHovered) -> singleHovered);
     }
 
 }

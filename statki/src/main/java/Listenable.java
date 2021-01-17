@@ -4,11 +4,22 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Listenable<T> {
+    private boolean ignoreEqual = false;
+
     Listenable(T object) {
         this.object = object;
     }
 
     Listenable() {
+    }
+
+    Listenable(boolean ignoreEqual) {
+        this.ignoreEqual = ignoreEqual;
+    }
+
+    Listenable(T object, boolean ignoreEqual) {
+        this.object = object;
+        this.ignoreEqual = ignoreEqual;
     }
 
     private T object;
@@ -19,8 +30,25 @@ public class Listenable<T> {
     private Function<T, T> transform;
 
     public void emit(T object) {
+        if (!this.ignoreEqual && this.object != null && this.object.equals(object)) {
+            return;
+        }
         this.object = object;
-        System.out.println(this.transform);
+        for (Consumer<T> callback : this.callbacks.values()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    T o = object;
+                    if (transform != null) {
+                        o = transform.apply(object);
+                    }
+                    callback.accept(o);
+                }
+            }).start();
+        }
+    }
+
+    public void reapply() {
         for (Consumer<T> callback : this.callbacks.values()) {
             new Thread(new Runnable() {
                 @Override
@@ -37,7 +65,6 @@ public class Listenable<T> {
 
     public void setTransform(Function<T, T> newTransform) {
         this.transform = newTransform;
-        System.out.println(this.transform);
     }
 
     public void subscribe(Consumer<T> listener, Integer key) {

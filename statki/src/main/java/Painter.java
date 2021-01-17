@@ -11,58 +11,75 @@ public class Painter {
     static final double TSIZE = 31;
     static final double TSPACE = 4.5;
 
-    static private BoardItem[][] cachedAiBoard;
-    static private BoardItem[][] cachedHumanBoard;
+    private static GraphicsContext gc;
 
-    public static void paint(BoardItem[][] humanBoard, BoardItem[][] aiBoard, GraphicsContext gc) {
-        Painter.cachedAiBoard = aiBoard;
+    public static void setGC(GraphicsContext gc) {
+        Painter.gc = gc;
+    }
+
+    private static BoardItem[][] cachedAiBoard;
+    private static BoardItem[][] cachedHumanBoard;
+
+    public static void repaintBoards(BoardItem[][] humanBoard, BoardItem[][] aiBoard) {
+        repaintBottom(humanBoard);
+        repaintTop(aiBoard);
+
+    }
+
+    public static void repaintBottom(BoardItem[][] humanBoard) {
+        Painter.repaintBackgroundBottom();
         Painter.cachedHumanBoard = humanBoard;
-
-        paintBackground(gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, humanBoard, gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, aiBoard, gc);
+        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, humanBoard);
     }
 
-    public static void paint(GraphicsContext gc) {
-        paintBackground(gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, cachedHumanBoard, gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, cachedAiBoard, gc);
+    public static void repaintBottom() {
+        Painter.repaintBackgroundBottom();
+        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, cachedHumanBoard);
     }
 
-    public static void paintHuman(BoardItem[][] humanBoard, GraphicsContext gc) {
-        Painter.cachedHumanBoard = humanBoard;
-
-        paintBackground(gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, humanBoard, gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, cachedAiBoard, gc);
-    }
-
-    public static void paintAI(BoardItem[][] aiBoard, GraphicsContext gc) {
+    public static void repaintTop(BoardItem[][] aiBoard) {
         Painter.cachedAiBoard = aiBoard;
-
-        paintBackground(gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, 400 + BPAD, cachedHumanBoard, gc);
-        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, aiBoard, gc);
+        Painter.repaintBackgroundTop();
+        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, aiBoard);
     }
 
-    private static void paintBackground(GraphicsContext gc) {
+    public static void repaintTop() {
+        Painter.repaintBackgroundTop();
+        paintBoard(BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2, BPAD, cachedAiBoard);
+    }
+
+    public static void repaintBoards() {
+        repaintBackgroundTop();
+        repaintTop();
+        repaintBottom();
+    }
+
+    private static void repaintBackgroundTop() {
         gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, 800, 800);
+        gc.fillRect(0, 0, 800, 400);
 
         gc.setFill(Color.WHITE);
-        gc.fillRect(0, 400 - STHI, 800, STHI);
+        gc.fillRect(0, 400 - STHI / 2, 800, STHI / 2);
     }
 
-    private static void paintBoard(double dx, double dy, BoardItem[][] board, GraphicsContext gc) {
+    private static void repaintBackgroundBottom() {
+        gc.setFill(Color.BLACK);
+        gc.fillRect(0, 400, 800, 400);
+
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 400, 800, STHI / 2);
+    }
+
+    private static void paintBoard(double dx, double dy, BoardItem[][] board) {
 
         for (int y = 9; y >= 0; y--) {
             for (int x = 0; x < 10; x++) {
-                paintBoardItem(dx + x * (TSIZE + TSPACE), dy + y * (TSIZE + TSPACE), board[x][y], gc);
+                paintBoardItem(dx + x * (TSIZE + TSPACE), dy + y * (TSIZE + TSPACE), board[x][y]);
             }
         }
     }
 
-    private static void paintBoardItem(double dx, double dy, BoardItem tile, GraphicsContext gc) {
+    private static void paintBoardItem(double dx, double dy, BoardItem tile) {
 
         Color c = switch (tile) {
             case SHIP -> Color.GREEN.brighter().brighter();
@@ -70,34 +87,31 @@ public class Painter {
             case EMPTY -> Color.WHITE;
             case HIT -> Color.RED;
         };
-        if (false) {
-            c = c.darker();
-        }
 
         gc.setFill(c);
         gc.fillRect(dx, dy, TSIZE, TSIZE);
     }
 
-    private static void paintHovered(double dx, double dy, GraphicsContext gc) {
+    private static void paintHovered(double dx, double dy) {
         gc.setFill(Color.rgb(0, 0, 0, 0.3));
         gc.fillRect(dx, dy, TSIZE, TSIZE);
     }
 
-    public static void paintHoveredBottom(Collection<TileLocation> hovered, GraphicsContext gc) {
+    public static void paintHoveredBottom(Collection<TileLocation> hovered) {
         double dx = BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2;
-        double dy = BPAD;
-        paint(gc);
+        double dy = BPAD + 400;
+        repaintBoards();
         for (TileLocation h : hovered) {
-            paintHovered(dx + h.x * (TSIZE + TSPACE), dy + h.y * (TSIZE + TSPACE), gc);
+            paintHovered(dx + h.x * (TSIZE + TSPACE), dy + h.y * (TSIZE + TSPACE));
         }
     }
 
-    public static void paintHoveredTop(Collection<TileLocation> hovered, GraphicsContext gc) {
+    public static void paintHoveredTop(Collection<TileLocation> hovered) {
         double dx = BPAD + 800 / 2 - ((TSIZE + STHI) * 10 - STHI) / 2;
-        double dy = 400 + BPAD;
-        paint(gc);
+        double dy = BPAD;
+        repaintBoards();
         for (TileLocation h : hovered) {
-            paintHovered(dx + h.x * (TSIZE + TSPACE), dy + h.y * (TSIZE + TSPACE), gc);
+            paintHovered(dx + h.x * (TSIZE + TSPACE), dy + h.y * (TSIZE + TSPACE));
         }
     }
 }

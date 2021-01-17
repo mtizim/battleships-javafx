@@ -1,6 +1,6 @@
 
 enum Orientation {
-    UP, LEFT, RIGHT, DOWN
+    UP, RIGHT, DOWN, LEFT
 }
 
 public class Ship {
@@ -14,7 +14,6 @@ public class Ship {
         this.orientation = orientation;
         this.x = x;
         this.y = y;
-
     }
 
 }

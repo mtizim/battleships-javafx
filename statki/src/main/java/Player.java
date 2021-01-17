@@ -1,14 +1,11 @@
-import javafx.scene.canvas.GraphicsContext;
 
 public abstract class Player {
     public Board playerBoard;
     public Board opponentBoard;
-    public GraphicsContext gc;
 
-    Player(Board playerBoard, Board opponentBoard, GraphicsContext gc) {
+    Player(Board playerBoard, Board opponentBoard) {
         this.playerBoard = playerBoard;
         this.opponentBoard = opponentBoard;
-        this.gc = gc;
     }
 
     void attack() {
@@ -21,7 +18,6 @@ public abstract class Player {
 
     void playRound() {
         this.attack();
-        playerBoard.display();
     }
 
     boolean hasShips() {
