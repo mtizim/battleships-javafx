@@ -1,10 +1,5 @@
-package statki;
 
 public class Board {
-
-    enum BoardItem {
-        SHIP, EMPTY, MISS, HIT
-    }
 
     BoardItem[][] board = new BoardItem[10][10];
 
@@ -29,6 +24,7 @@ public class Board {
                     case HIT -> BoardItem.HIT;
 
                 };
+                // todo get hover
                 retboard[x][y] = s;
             }
         }
@@ -71,13 +67,14 @@ public class Board {
 
     private boolean checkForShipsAround(int x, int y) {
         // return true if there's a ship around given coords
-        return !(boardAccess(x + 1, y + 1) != BoardItem.SHIP && boardAccess(x, y + 1) != BoardItem.SHIP
+        return (boardAccess(x + 1, y + 1) != BoardItem.SHIP && boardAccess(x, y + 1) != BoardItem.SHIP
                 && boardAccess(x - 1, y + 1) != BoardItem.SHIP && boardAccess(x - 1, y) != BoardItem.SHIP
                 && boardAccess(x + 1, y) != BoardItem.SHIP && boardAccess(x + 1, y - 1) != BoardItem.SHIP
                 && boardAccess(x, y - 1) != BoardItem.SHIP && boardAccess(x - 1, y - 1) != BoardItem.SHIP);
     }
 
-    void place(Ship ship) throws InvalidPlacementException {
+    boolean place(Ship ship) {
+        // bool value is success state
         int x = ship.x;
         int y = ship.y;
         int size = ship.size;
@@ -86,7 +83,7 @@ public class Board {
             case UP:
                 for (int dy = 0; dy < size; dy++) {
                     if (y + dy < 0 || y + dy > 9 || !checkForShipsAround(x, y + dy)) {
-                        throw new InvalidPlacementException();
+                        return false;
                     }
                 }
 
@@ -97,7 +94,7 @@ public class Board {
             case LEFT:
                 for (int dx = 0; dx < size; dx++) {
                     if (x - dx < 0 || x - dx > 10 || !checkForShipsAround(x - dx, y)) {
-                        throw new InvalidPlacementException();
+                        return false;
                     }
                 }
                 for (int dx = 0; dx < size; dx++) {
@@ -107,7 +104,7 @@ public class Board {
             case RIGHT:
                 for (int dx = 0; dx < size; dx++) {
                     if (x + dx < 0 || x + dx > 9 || !checkForShipsAround(x + dx, y)) {
-                        throw new InvalidPlacementException();
+                        return false;
                     }
                 }
                 for (int dx = 0; dx < size; dx++) {
@@ -115,9 +112,13 @@ public class Board {
                 }
                 break;
             case DOWN:
+
                 for (int dy = 0; dy < size; dy++) {
+                    System.out.println(y);
+                    System.out.println(dy);
+                    System.out.println(checkForShipsAround(x, y - dy));
                     if (y - dy < 0 || y - dy > 9 || !checkForShipsAround(x, y - dy)) {
-                        throw new InvalidPlacementException();
+                        return false;
                     }
                 }
                 for (int dy = 0; dy < size; dy++) {
@@ -125,6 +126,7 @@ public class Board {
                 }
                 break;
         }
+        return true;
     }
 
     int attack(int x, int y) {
@@ -156,4 +158,8 @@ public class Board {
         }
     }
 
+}
+
+enum BoardItem {
+    SHIP, EMPTY, MISS, HIT
 }
