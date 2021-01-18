@@ -2,11 +2,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class HumanPlayer extends Player {
 
-    HumanPlayer(Board playerBoard, Board opponentBoard) {
-        super(playerBoard, opponentBoard);
+    HumanPlayer(Board playerBoard, Consumer<BoardItem[][]> repaintSelfFunction) {
+        super(playerBoard, repaintSelfFunction);
     }
 
     @Override
@@ -14,13 +15,13 @@ public class HumanPlayer extends Player {
 
         CompletableFuture<Void> f = new CompletableFuture<>();
         Global.topClickedStream.subscribe((TileLocation location) -> {
-            if (this.opponentBoard.selfBoard[location.x][location.y] == BoardItem.MISS) {
+            if (this.opponent.playerBoard.selfBoard[location.x][location.y] == BoardItem.MISS) {
                 return;
             }
-            this.opponentBoard.attack(location.x, location.y);
+            this.opponent.playerBoard.attack(location.x, location.y);
 
             Global.topClickedStream.unsubscribe(10);
-            Painter.repaintTop(opponentBoard.displayToOpponent());
+            opponent.repaintSelf(opponent.playerBoard.displayToOpponent());
             f.complete(null);
         }, 10);
         try {
@@ -51,6 +52,9 @@ public class HumanPlayer extends Player {
         int[][] ships = { { 5 }, { 4 }, { 3 }, { 3 }, { 2 } };
         for (int[] size : ships) {
             Global.bottomHoveredStream.setTransform((Collection<TileLocation> singleHovered) -> {
+                if (singleHovered == null) {
+                    return null;
+                }
                 TileLocation s = singleHovered.iterator().next();
                 Collection<TileLocation> r = new ArrayList<>();
                 switch (currentOrientation[0]) {
@@ -84,7 +88,7 @@ public class HumanPlayer extends Player {
                 if (!placed) {
                     return;
                 }
-                Painter.repaintBottom(playerBoard.display());
+                repaintSelf(playerBoard.display());
                 f.complete(null);
             }, 11);
             try {
@@ -93,6 +97,7 @@ public class HumanPlayer extends Player {
                 e.printStackTrace();
             }
         }
+        Global.bottomClickedStream.unsubscribe(11);
         Global.topHoveredStream.resumeSubscription(98);
         Global.mwheelStream.unsubscribe(60);
         Global.bottomHoveredStream.unsubscribe(99);

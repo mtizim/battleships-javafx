@@ -1,23 +1,32 @@
+import java.util.function.Consumer;
 
 public abstract class Player {
     public Board playerBoard;
-    public Board opponentBoard;
+    public Player opponent;
+    public Consumer<BoardItem[][]> repaintSelfFunction;
+    public Consumer<BoardItem[][]> repaintOpponentFunction;
 
-    Player(Board playerBoard, Board opponentBoard) {
+    // alway construct then set opponent
+    Player(Board playerBoard, Consumer<BoardItem[][]> repaintSelfFunction) {
         this.playerBoard = playerBoard;
-        this.opponentBoard = opponentBoard;
+        this.repaintSelfFunction = repaintSelfFunction;
+    }
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
+        opponent.opponent = this;
     }
 
     void attack() {
 
     }
 
-    void placeShips() {
-
+    void repaintSelf(BoardItem[][] board) {
+        this.repaintSelfFunction.accept(board);
     }
 
-    void playRound() {
-        this.attack();
+    void placeShips() {
+
     }
 
     boolean hasShips() {

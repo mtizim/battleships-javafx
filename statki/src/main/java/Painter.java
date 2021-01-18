@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 
 public class Painter {
 
-    // DO NOT TOUCH THIS
+    // DO NOT TOUCH
     static final double BPAD = 20;
     static final double STHI = 10;
     static final double TSIZE = 31;
@@ -102,6 +102,10 @@ public class Painter {
         double dy = BPAD + 400;
         repaintBoards();
         for (TileLocation h : hovered) {
+            // human player can sometimes hover multiple tiles
+            if (dy + h.y * (TSIZE + TSPACE) < 400 + STHI / 2) {
+                return;
+            }
             paintHovered(dx + h.x * (TSIZE + TSPACE), dy + h.y * (TSIZE + TSPACE));
         }
     }

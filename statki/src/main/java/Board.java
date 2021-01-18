@@ -134,6 +134,9 @@ public class Board {
             selfBoard[x][y] = BoardItem.MISS;
             return;
         }
+        if (selfBoard[x][y] != BoardItem.SHIP) {
+            return;
+        }
         selfBoard[x][y] = BoardItem.HIT;
 
         List<TileLocation> shiptiles = new ArrayList<>();
