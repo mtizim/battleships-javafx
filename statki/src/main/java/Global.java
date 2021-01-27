@@ -2,11 +2,12 @@ import java.util.Collection;
 
 // Easier than dependency injection, it's a small finite project anyway
 public class Global {
-    public static final Listenable<TileLocation> bottomClickedStream = new Listenable<>();
-    public static final Listenable<TileLocation> topClickedStream = new Listenable<>();
-    public static final Listenable<Collection<TileLocation>> topHoveredStream = new Listenable<>();
-    public static final Listenable<Collection<TileLocation>> bottomHoveredStream = new Listenable<>();
-    public static final Listenable<MWHEEL> mwheelStream = new Listenable<>(true);
+    public static final ChangeListener<TileLocation> bottomClickedStream = new ChangeListener<>();
+    public static final ChangeListener<TileLocation> topClickedStream = new ChangeListener<>();
+    public static final ChangeListener<Collection<TileLocation>> topHoveredStream = new ChangeListener<>();
+    public static final ChangeListener<Collection<TileLocation>> bottomHoveredStream = new ChangeListener<>();
+    public static final ChangeListener<MWHEEL> mwheelStream = new ChangeListener<>(true);
+
 }
 
 enum MWHEEL {

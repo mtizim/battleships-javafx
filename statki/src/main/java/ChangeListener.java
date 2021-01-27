@@ -3,21 +3,21 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Listenable<T> {
+public class ChangeListener<T> {
     private boolean ignoreEqual = false;
 
-    Listenable(T object) {
+    ChangeListener(T object) {
         this.object = object;
     }
 
-    Listenable() {
+    ChangeListener() {
     }
 
-    Listenable(boolean ignoreEqual) {
+    ChangeListener(boolean ignoreEqual) {
         this.ignoreEqual = ignoreEqual;
     }
 
-    Listenable(T object, boolean ignoreEqual) {
+    ChangeListener(T object, boolean ignoreEqual) {
         this.object = object;
         this.ignoreEqual = ignoreEqual;
     }
@@ -30,6 +30,9 @@ public class Listenable<T> {
     private Function<T, T> transform;
 
     public void emit(T object) {
+        if (object == null) {
+            return;
+        }
         if (!this.ignoreEqual && this.object != null && this.object.equals(object)) {
             return;
         }
@@ -49,6 +52,9 @@ public class Listenable<T> {
     }
 
     public void reapply() {
+        if (this.object == null) {
+            return;
+        }
         for (Consumer<T> callback : this.callbacks.values()) {
             new Thread(new Runnable() {
                 @Override

@@ -12,18 +12,19 @@ public class HumanPlayer extends Player {
 
     @Override
     void attack() {
-
+        Painter.paintAttackBottom();
         CompletableFuture<Void> f = new CompletableFuture<>();
         Global.topClickedStream.subscribe((TileLocation location) -> {
-            if (this.opponent.playerBoard.selfBoard[location.x][location.y] == BoardItem.MISS) {
+            if (this.opponent.playerBoard.selfBoard[location.x][location.y] == BoardItem.MISS
+                    || this.opponent.playerBoard.selfBoard[location.x][location.y] == BoardItem.HIT) {
                 return;
             }
             this.opponent.playerBoard.attack(location.x, location.y);
 
-            Global.topClickedStream.unsubscribe(10);
+            Global.topClickedStream.unsubscribe(2);
             opponent.repaintSelf(opponent.playerBoard.displayToOpponent());
             f.complete(null);
-        }, 10);
+        }, 2);
         try {
             f.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -33,7 +34,8 @@ public class HumanPlayer extends Player {
 
     @Override
     void placeShips() {
-        Global.topHoveredStream.pauseSubscription(98);
+        Painter.paintPlaceBottom();
+        Global.topHoveredStream.pauseSubscription(1);
         // weird concurrency hacks but it's just ints and enums anyway
         // proper thread communication would be harder and bring no benefits
         Orientation[] currentOrientation = { Orientation.DOWN };
@@ -48,7 +50,7 @@ public class HumanPlayer extends Player {
                 currentOrientation[0] = Orientation.values()[newi];
             }
             Global.bottomHoveredStream.reapply();
-        }, 60);
+        }, 1);
         int[][] ships = { { 5 }, { 4 }, { 3 }, { 3 }, { 2 } };
         for (int[] size : ships) {
             Global.bottomHoveredStream.setTransform((Collection<TileLocation> singleHovered) -> {
@@ -90,17 +92,17 @@ public class HumanPlayer extends Player {
                 }
                 repaintSelf(playerBoard.display());
                 f.complete(null);
-            }, 11);
+            }, 2);
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
-        Global.bottomClickedStream.unsubscribe(11);
-        Global.topHoveredStream.resumeSubscription(98);
-        Global.mwheelStream.unsubscribe(60);
-        Global.bottomHoveredStream.unsubscribe(99);
+        Global.bottomClickedStream.unsubscribe(2);
+        Global.topHoveredStream.resumeSubscription(1);
+        Global.mwheelStream.unsubscribe(1);
+        Global.bottomHoveredStream.unsubscribe(1);
         Global.bottomHoveredStream.setTransform((Collection<TileLocation> singleHovered) -> singleHovered);
     }
 

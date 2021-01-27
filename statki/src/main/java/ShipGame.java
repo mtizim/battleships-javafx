@@ -41,7 +41,7 @@ public class ShipGame extends Application {
 
                 double x = e.getX();
                 double y = e.getY();
-                Listenable<TileLocation> s;
+                ChangeListener<TileLocation> s;
                 // Heavy relying on constants from Painter.java
                 // Those wil never change though
                 if (y > 400) {
@@ -78,7 +78,7 @@ public class ShipGame extends Application {
 
                 double x = e.getX();
                 double y = e.getY();
-                Listenable<Collection<TileLocation>> s;
+                ChangeListener<Collection<TileLocation>> s;
                 // Heavy relying on constants from Painter.java
                 // Those wil never change though
                 if (y > 400) {
@@ -101,12 +101,16 @@ public class ShipGame extends Application {
             }
         });
 
+        Global.bottomClickedStream.subscribe((var discard) -> restart(), 10);
+        Global.topClickedStream.subscribe((var discard) -> restart(), 10);
         restart();
-        (new Thread(loop)).start();
 
     }
 
     void restart() {
+        Global.topClickedStream.pauseSubscription(10);
+        Global.bottomClickedStream.pauseSubscription(10);
         loop = new GameLoop();
+        (new Thread(loop)).start();
     }
 }
